@@ -50,5 +50,11 @@ pipeline {
                     }
                 }
             }
-	}
+            stage('Archive') {
+            steps {
+
+                                archiveArtifacts artifacts: '**/*_nginx.out', onlyIfSuccessful: false
+           		 }
+        	}
+	 }
 }
