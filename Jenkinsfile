@@ -24,5 +24,31 @@ pipeline {
                 }
 
             }
+            stage('run') {
+                steps {
+                    script {
+                        sh """
+                        docker stop nginx || true && docker rm nginx || true
+                        """
+                        def container = image.run('--name nginx -p 80:8080')
+                        def date = new Date().format("dd.MM.yyy")
+
+                        def resp = sh returnStdout: true,script:'curl -w "%{http_code}" -o /dev/null -s http://localhost/'
+
+                        if ( resp == "200" ) {
+                            println "nginx works"
+                            currentBuild.result = "SUCCESS"
+                            sh """
+                            mkdir output || true
+                            curl -o ${env.BUILD_ID}_${date}_nginx.out -s http://localhost/
+                            """
+                        }
+                        else {
+                            println "Build failed. Please check ${env.BUILD_URL}"
+                            currentBuild.result = "FAILURE"
+                        }
+                    }
+                }
+            }
 	}
 }
